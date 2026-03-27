@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Industry Standards Settings</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="standards">
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Settings page</p>
+          <div class="topline">
+            <h1>Industry Standards Settings</h1>
+            <nav class="page-nav">
+              <a href="index.html" class="nav-link">Dashboard</a>
+              <a href="standards.html" class="nav-link active">Industry Standards</a>
+            </nav>
+          </div>
+          <p class="hero-copy">
+            Set the defaults you want the dashboard to use when you hit reset. These values are saved in your browser.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button id="saveStandardsBtn" class="primary">Save standards</button>
+          <button id="resetStandardsBtn" class="secondary">Restore app baseline</button>
+          <button id="loadCurrentBtn" class="secondary">Reload saved standards</button>
+          <a href="index.html" class="button-link">Back to dashboard</a>
+        </div>
+      </header>
+
+      <main class="grid">
+        <section class="card span-2">
+          <div class="section-heading">
+            <div>
+              <h2>Standards profile inputs</h2>
+              <p>Everything here is editable. These become the dashboard reset values.</p>
+            </div>
+            <div class="notice-box" id="settingsSaveStatus"></div>
+          </div>
+          <div class="form-grid">
+            <label>Deal size ($)<input id="dealSize" type="number" min="0" step="1000" /></label>
+            <label>Base purchase price ($)<input id="basePrice" type="number" min="0" step="1000" /></label>
+            <label>Capital invested ($)<input id="investedCapital" type="number" min="0" step="1000" /></label>
+            <label>Entry date<input id="entryDate" type="date" /></label>
+            <label>Exit date<input id="exitDate" type="date" /></label>
+            <label>Hold period (years, fallback)<input id="holdYears" type="number" min="0" step="0.01" /></label>
+            <label>Expected exit multiple (x)<input id="exitMultiple" type="number" min="0" step="0.01" /></label>
+            <label>SPV life (years)<input id="spvLifeYears" type="number" min="0" step="0.01" /></label>
+            <label>
+              Carry hurdle basis
+              <select id="carryBasisGlobal">
+                <option value="hard">Hard hurdle</option>
+                <option value="soft">Soft hurdle</option>
+                <option value="none">No hurdle</option>
+              </select>
+            </label>
+
+            <label>Structure A label<input id="aLabel" type="text" /></label>
+            <label>Structure A upfront fee (%)<input id="aUpfrontPct" type="number" min="0" step="0.01" /></label>
+            <label>Structure A management fee (%)<input id="aMgmtPct" type="number" min="0" step="0.01" /></label>
+            <label>Structure A carry (%)<input id="aCarryPct" type="number" min="0" step="0.01" /></label>
+            <label>Structure A preferred return (%)<input id="aPrefPct" type="number" min="0" step="0.01" /></label>
+
+            <label>Structure B label<input id="bLabel" type="text" /></label>
+            <label>Structure B upfront fee (%)<input id="bUpfrontPct" type="number" min="0" step="0.01" /></label>
+            <label>Structure B management fee (%)<input id="bMgmtPct" type="number" min="0" step="0.01" /></label>
+            <label>Structure B carry (%)<input id="bCarryPct" type="number" min="0" step="0.01" /></label>
+            <label>Structure B preferred return (%)<input id="bPrefPct" type="number" min="0" step="0.01" /></label>
+
+            <label>Legal setup cost ($)<input id="legalCost" type="number" min="0" step="1000" /></label>
+            <label>Annual compliance / admin ($)<input id="annualComplianceCost" type="number" min="0" step="1000" /></label>
+            <label>Annual audit / tax ($)<input id="annualAuditTaxCost" type="number" min="0" step="1000" /></label>
+
+            <label>Primary / round price<input id="roundPrice" type="number" min="0" step="0.0001" /></label>
+            <label>Secondary market price<input id="secondaryPrice" type="number" min="0" step="0.0001" /></label>
+
+            <label>Upfront fee - investor %<input id="allocUpfrontInvestor" type="number" min="0" step="0.01" /></label>
+            <label>Upfront fee - sponsor %<input id="allocUpfrontSponsor" type="number" min="0" step="0.01" /></label>
+            <label>Upfront fee - client %<input id="allocUpfrontClient" type="number" min="0" step="0.01" /></label>
+
+            <label>Management fee - investor %<input id="allocMgmtInvestor" type="number" min="0" step="0.01" /></label>
+            <label>Management fee - sponsor %<input id="allocMgmtSponsor" type="number" min="0" step="0.01" /></label>
+            <label>Management fee - client %<input id="allocMgmtClient" type="number" min="0" step="0.01" /></label>
+
+            <label>Carry - investor %<input id="allocCarryInvestor" type="number" min="0" step="0.01" /></label>
+            <label>Carry - sponsor %<input id="allocCarrySponsor" type="number" min="0" step="0.01" /></label>
+            <label>Carry - client %<input id="allocCarryClient" type="number" min="0" step="0.01" /></label>
+
+            <label>Legal - investor %<input id="allocLegalInvestor" type="number" min="0" step="0.01" /></label>
+            <label>Legal - sponsor %<input id="allocLegalSponsor" type="number" min="0" step="0.01" /></label>
+            <label>Legal - client %<input id="allocLegalClient" type="number" min="0" step="0.01" /></label>
+
+            <label>Ongoing - investor %<input id="allocOngoingInvestor" type="number" min="0" step="0.01" /></label>
+            <label>Ongoing - sponsor %<input id="allocOngoingSponsor" type="number" min="0" step="0.01" /></label>
+            <label>Ongoing - client %<input id="allocOngoingClient" type="number" min="0" step="0.01" /></label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <h2>Default cash-flow rows</h2>
+              <p>These rows are also stored as part of your standards profile.</p>
+            </div>
+            <button id="addCashFlowBtn" class="secondary">Add cash-flow row</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Description</th><th>Amount ($)</th><th>Action</th></tr></thead>
+              <tbody id="cashFlowTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <h2>What reset does</h2>
+              <p>From the dashboard page, reset will:</p>
+            </div>
+          </div>
+          <div class="single-column">
+            <div class="metric"><span>Load your saved standards</span><strong>Yes</strong></div>
+            <div class="metric"><span>Overwrite current deal inputs</span><strong>Yes</strong></div>
+            <div class="metric"><span>Clear your standards profile</span><strong>No</strong></div>
+            <div class="metric"><span>Restore app baseline</span><strong>Only if you choose it here</strong></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="cashFlowRowTemplate">
+      <tr>
+        <td><input type="date" class="cf-date" /></td>
+        <td><input type="text" class="cf-desc" placeholder="Interim distribution" /></td>
+        <td><input type="number" class="cf-amount" step="1000" /></td>
+        <td><button type="button" class="danger cf-remove">Remove</button></td>
+      </tr>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

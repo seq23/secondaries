@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secondary Deal Economics Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="dashboard">
+    <div class="app-shell">
+      <header class="hero no-print">
+        <div>
+          <p class="eyebrow">Lite web app · static deploy</p>
+          <div class="topline">
+            <h1>Secondary Deal Economics Dashboard</h1>
+            <nav class="page-nav">
+              <a href="index.html" class="nav-link active">Dashboard</a>
+              <a href="standards.html" class="nav-link">Industry Standards</a>
+            </nav>
+          </div>
+          <p class="hero-copy">
+            Edit any input and the whole model recalculates instantly. Reset the model to your own stored
+            industry standards at any time. Use the separate standards page to define those defaults.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button id="resetDefaultsBtn" class="primary">Reset to saved industry standards</button>
+          <button id="resetBuiltInBtn" class="secondary">Reset standards to app baseline</button>
+          <button id="clearAllBtn" class="secondary">Clear all inputs</button>
+          <button id="downloadCsvBtn" class="secondary">Export CSV</button>
+          <button id="printPdfBtn" class="secondary">Export / Print PDF</button>
+        </div>
+      </header>
+
+      <div class="print-only print-header">
+        <h1>Secondary Deal Economics Dashboard Report</h1>
+        <p id="printTimestamp"></p>
+      </div>
+
+      <main class="grid">
+        <section class="card span-2">
+          <div class="section-heading">
+            <div>
+              <h2>Core deal inputs</h2>
+              <p>Every field is editable. Change anything and the outputs update immediately.</p>
+            </div>
+            <div class="notice-box" id="standardsStatus"></div>
+          </div>
+          <div class="form-grid">
+            <label>Deal size ($)<input id="dealSize" type="number" min="0" step="1000" /></label>
+            <label>Base purchase price ($)<input id="basePrice" type="number" min="0" step="1000" /></label>
+            <label>Capital invested ($)<input id="investedCapital" type="number" min="0" step="1000" /></label>
+            <label>Entry date<input id="entryDate" type="date" /></label>
+            <label>Exit date<input id="exitDate" type="date" /></label>
+            <label>Hold period (years, fallback)<input id="holdYears" type="number" min="0" step="0.01" /></label>
+            <label>Expected exit multiple (x)<input id="exitMultiple" type="number" min="0" step="0.01" /></label>
+            <label>SPV life (years)<input id="spvLifeYears" type="number" min="0" step="0.01" /></label>
+            <label>
+              Carry hurdle basis
+              <select id="carryBasisGlobal">
+                <option value="hard">Hard hurdle</option>
+                <option value="soft">Soft hurdle</option>
+                <option value="none">No hurdle</option>
+              </select>
+            </label>
+          </div>
+          <div class="helper-row">
+            <span class="pill">All model inputs editable</span>
+            <span class="pill">Your own standards profile</span>
+            <span class="pill">Premium / discount checker</span>
+            <span class="pill">Side-by-side economics engine</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <h2>Current standards profile</h2>
+              <p>These are the values used when you hit reset.</p>
+            </div>
+            <a class="text-link" href="standards.html">Edit standards</a>
+          </div>
+          <div class="standards-list" id="standardsList"></div>
+        </section>
+
+        <section class="card span-2">
+          <div class="section-heading">
+            <div>
+              <h2>Structure comparison</h2>
+              <p>Model two fee stacks side by side.</p>
+            </div>
+          </div>
+          <div class="comparison-grid">
+            <div class="subcard">
+              <h3>Structure A</h3>
+              <label>Label<input id="aLabel" type="text" /></label>
+              <label>Upfront fee (% of deal size)<input id="aUpfrontPct" type="number" min="0" step="0.01" /></label>
+              <label>Management fee (% annual)<input id="aMgmtPct" type="number" min="0" step="0.01" /></label>
+              <label>Carry (% of profit)<input id="aCarryPct" type="number" min="0" step="0.01" /></label>
+              <label>Preferred return / hurdle (% annual)<input id="aPrefPct" type="number" min="0" step="0.01" /></label>
+            </div>
+            <div class="subcard">
+              <h3>Structure B</h3>
+              <label>Label<input id="bLabel" type="text" /></label>
+              <label>Upfront fee (% of deal size)<input id="bUpfrontPct" type="number" min="0" step="0.01" /></label>
+              <label>Management fee (% annual)<input id="bMgmtPct" type="number" min="0" step="0.01" /></label>
+              <label>Carry (% of profit)<input id="bCarryPct" type="number" min="0" step="0.01" /></label>
+              <label>Preferred return / hurdle (% annual)<input id="bPrefPct" type="number" min="0" step="0.01" /></label>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <h2>SPV overhead</h2>
+              <p>Direct cost assumptions for the vehicle.</p>
+            </div>
+          </div>
+          <div class="single-column">
+            <label>Legal setup cost ($)<input id="legalCost" type="number" min="0" step="1000" /></label>
+            <label>Annual compliance / admin ($)<input id="annualComplianceCost" type="number" min="0" step="1000" /></label>
+            <label>Annual audit / tax ($)<input id="annualAuditTaxCost" type="number" min="0" step="1000" /></label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <h2>Round vs secondary pricing</h2>
+              <p>Check whether the trade is at a premium or discount.</p>
+            </div>
+          </div>
+          <div class="single-column">
+            <label>Primary / round price<input id="roundPrice" type="number" min="0" step="0.0001" /></label>
+            <label>Secondary market price<input id="secondaryPrice" type="number" min="0" step="0.0001" /></label>
+          </div>
+          <div class="metric-stack top-gap">
+            <div class="metric"><span>Premium / discount</span><strong id="premiumDiscountValue"></strong></div>
+            <div class="metric"><span>Classification</span><strong id="premiumDiscountLabel"></strong></div>
+          </div>
+        </section>
+
+        <section class="card span-2">
+          <div class="section-heading">
+            <div>
+              <h2>Fee allocation splits</h2>
+              <p>How the cost burden is allocated across investor, sponsor, and client.</p>
+            </div>
+          </div>
+          <div class="allocation-grid">
+            <div class="alloc-row alloc-head">
+              <div>Fee bucket</div><div>Investor %</div><div>Sponsor %</div><div>Client %</div><div>Total</div>
+            </div>
+            <div class="alloc-row">
+              <div>Upfront fee</div>
+              <input id="allocUpfrontInvestor" type="number" min="0" step="0.01" />
+              <input id="allocUpfrontSponsor" type="number" min="0" step="0.01" />
+              <input id="allocUpfrontClient" type="number" min="0" step="0.01" />
+              <strong id="allocUpfrontStatus"></strong>
+            </div>
+            <div class="alloc-row">
+              <div>Management fee</div>
+              <input id="allocMgmtInvestor" type="number" min="0" step="0.01" />
+              <input id="allocMgmtSponsor" type="number" min="0" step="0.01" />
+              <input id="allocMgmtClient" type="number" min="0" step="0.01" />
+              <strong id="allocMgmtStatus"></strong>
+            </div>
+            <div class="alloc-row">
+              <div>Carry</div>
+              <input id="allocCarryInvestor" type="number" min="0" step="0.01" />
+              <input id="allocCarrySponsor" type="number" min="0" step="0.01" />
+              <input id="allocCarryClient" type="number" min="0" step="0.01" />
+              <strong id="allocCarryStatus"></strong>
+            </div>
+            <div class="alloc-row">
+              <div>Legal</div>
+              <input id="allocLegalInvestor" type="number" min="0" step="0.01" />
+              <input id="allocLegalSponsor" type="number" min="0" step="0.01" />
+              <input id="allocLegalClient" type="number" min="0" step="0.01" />
+              <strong id="allocLegalStatus"></strong>
+            </div>
+            <div class="alloc-row">
+              <div>Ongoing admin / audit / tax</div>
+              <input id="allocOngoingInvestor" type="number" min="0" step="0.01" />
+              <input id="allocOngoingSponsor" type="number" min="0" step="0.01" />
+              <input id="allocOngoingClient" type="number" min="0" step="0.01" />
+              <strong id="allocOngoingStatus"></strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="card span-2">
+          <div class="section-heading">
+            <div>
+              <h2>Dated cash flows</h2>
+              <p>Add any interim distributions or reimbursements. XIRR recalculates automatically.</p>
+            </div>
+            <button id="addCashFlowBtn" class="secondary no-print">Add cash-flow row</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Description</th><th>Amount ($)</th><th class="no-print">Action</th></tr>
+              </thead>
+              <tbody id="cashFlowTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card span-3">
+          <div class="section-heading">
+            <div>
+              <h2>Results</h2>
+              <p>Fast commercial comparison across the two structures.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Metric</th><th id="colALabel"></th><th id="colBLabel"></th><th>Winner</th></tr>
+              </thead>
+              <tbody id="comparisonBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <h2>Payer burden</h2>
+              <p>Total dollars by payer under each structure.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Payer</th><th id="payerColALabel"></th><th id="payerColBLabel"></th></tr></thead>
+              <tbody id="payerBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card span-2">
+          <div class="section-heading">
+            <div>
+              <h2>XIRR summary</h2>
+              <p>Dated-cash-flow investor return approximation.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Metric</th><th id="xirrColALabel"></th><th id="xirrColBLabel"></th></tr></thead>
+              <tbody id="xirrSummaryBody"></tbody>
+            </table>
+          </div>
+          <div class="helper-row top-gap">
+            <span class="pill" id="breakEvenPill"></span>
+            <span class="pill" id="spvLifePill"></span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="cashFlowRowTemplate">
+      <tr>
+        <td><input type="date" class="cf-date" /></td>
+        <td><input type="text" class="cf-desc" placeholder="Interim distribution" /></td>
+        <td><input type="number" class="cf-amount" step="1000" /></td>
+        <td class="no-print"><button type="button" class="danger cf-remove">Remove</button></td>
+      </tr>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
