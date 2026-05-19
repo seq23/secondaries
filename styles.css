@@ -216,3 +216,45 @@ td:last-child, th:last-child { text-align: right; }
   .print-only { display:block; }
   .pill, .notice-box { color:#000; border-color:#ddd; background:#fff; }
 }
+
+/* Multi-dashboard additions */
+.nav-link { color: var(--accent-2); }
+button.nav-link {
+  appearance: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.instruction-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+ul { margin: 0; padding-left: 20px; color: var(--muted); }
+li { margin-bottom: 8px; }
+.metric.big {
+  min-height: 86px;
+  background: rgba(143, 180, 255, 0.08);
+}
+.metric.big strong { font-size: 1.4rem; }
+.allocation-table input { min-width: 120px; }
+td input { min-width: 120px; }
+button:hover, .button-link:hover, .nav-link:hover {
+  transform: translateY(-1px);
+  transition: transform 120ms ease, border-color 120ms ease;
+  border-color: rgba(201,217,255,0.35);
+}
+button:focus-visible, input:focus-visible, select:focus-visible, .button-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1180px) {
+  .instruction-grid { grid-template-columns: 1fr; }
+}
+@media print {
+  .tab-panel { display: none !important; }
+  .tab-panel.active { display: block !important; }
+  input, select { color:#000; background:#fff; border-color:#ddd; }
+}

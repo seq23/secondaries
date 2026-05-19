@@ -1,39 +1,27 @@
-# Secondary Deal Economics Dashboard v3
+# Venture Deal Math Dashboards
 
-Static HTML/CSS/JS web app for comparing secondary/SPV deal economics.
+Static HTML/CSS/JS calculator suite for venture deal math.
 
-## What changed in v3
+## Dashboards
 
-- every core dashboard field remains editable
-- reset now loads a saved **industry standards profile**
-- added a separate `standards.html` page where you can edit and save your own standards
-- standards are stored in browser localStorage, so they persist on the deployed site for that browser
-- dashboard shows the current saved standards profile used by reset
-- premium / discount section remains editable
-- side-by-side structure comparison, XIRR, fee split logic, and SPV overhead logic remain in place
+1. **Instructions** — Explains what each dashboard does, how reset/export/print work, and how to interpret the outputs.
+2. **Secondary Deals** — The original secondary deal economics dashboard, preserved as a standalone calculator.
+3. **Primary Deals** — Standalone calculator for pre-seed, seed, and Series A primary rounds. Supports priced equity, post-money SAFE, and convertible note / pre-money SAFE approximations.
+4. **Fund Math** — Standalone calculator for emerging-manager fund construction, including fund size, fees, GP commit, investable capital, stage allocation, check sizing, reserves, graduation assumptions, DPI placeholder, and power-law return requirement.
 
-## Files
+## Behavior
 
-- `index.html` — live dashboard
-- `standards.html` — standards/defaults editor
-- `app.js` — shared app logic
-- `styles.css` — styles
+- Each dashboard is separate and has its own browser-saved assumptions.
+- Global buttons operate on the active dashboard only.
+- Inputs are editable and recalculations happen live.
+- Current tab can be exported to CSV.
+- Current tab can be printed / saved as PDF from the browser.
+- No build system or dependency install is required.
 
-## Local use
+## Deployment
 
-Open `index.html` in a browser.
+Upload the repo root to any static host such as Cloudflare Pages, Netlify, Vercel static output, or GitHub Pages.
 
-## GitHub + Cloudflare Pages deploy
+## Important note
 
-This is a static project. No build step is required.
-
-### Cloudflare Pages settings
-
-- Framework preset: None
-- Build command: leave blank
-- Build output directory: /
-
-## Notes
-
-- Saved standards live in browser storage. They do not sync across browsers or devices unless you add a backend later.
-- This is a fast commercial comparison tool, not a substitute for final fund/SPV docs, waterfall counsel review, tax advice, or legal review.
+The calculators are decision-support tools. They are not legal, tax, accounting, valuation, or investment advice. Legal docs and fund governing documents control the actual economics.
