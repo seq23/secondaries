@@ -3,38 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Venture Deal Math Dashboards</title>
+    <title>West Peek Deal Intelligence</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body data-page="dashboard">
     <div class="app-shell">
-      <header class="hero no-print">
-        <div>
-          <p class="eyebrow">VC calculator suite · static deploy</p>
-          <div class="topline">
-            <h1>Venture Deal Math Dashboards</h1>
-            <nav class="page-nav" aria-label="Dashboard tabs">
-              <button class="nav-link active" data-tab="instructions" type="button">Instructions</button>
-              <button class="nav-link" data-tab="secondary" type="button">Secondary Deals</button>
-              <button class="nav-link" data-tab="primary" type="button">Primary Deals</button>
-              <button class="nav-link" data-tab="fund" type="button">Fund Math</button>
-            </nav>
-          </div>
-          <p class="hero-copy">
-            Three separate dashboards. Each tab has its own editable assumptions, saved browser state, baseline reset, clear, CSV export, and print/PDF output. Nothing from Primary Deals or Fund Math is blended into the Secondary Deals model.
-          </p>
-        </div>
-        <div class="hero-actions">
-          <button id="resetDefaultsBtn" class="primary">Reset current tab to saved values</button>
-          <button id="resetBuiltInBtn" class="secondary">Reset current tab to app baseline</button>
-          <button id="clearAllBtn" class="secondary">Clear current tab</button>
-          <button id="downloadCsvBtn" class="secondary">Export current tab CSV</button>
-          <button id="printPdfBtn" class="secondary">Export / Print PDF</button>
-        </div>
+      <header class="site-header no-print">
+        <a class="brand-lockup" href="index.html" aria-label="West Peek Deal Intelligence home">
+          <img src="assets/wp-logo.png" alt="West Peek" />
+          <span><b>West Peek</b><small>Deal Intelligence</small></span>
+        </a>
+        <nav class="page-nav" aria-label="Dashboard tabs">
+          <button class="nav-link active" data-tab="instructions" type="button">Overview</button>
+          <button class="nav-link" data-tab="secondary" type="button">Secondary Deals</button>
+          <button class="nav-link" data-tab="primary" type="button">Primary Deals</button>
+          <button class="nav-link" data-tab="fund" type="button">Fund Math</button>
+        </nav>
       </header>
 
+      <section class="hero no-print">
+        <div class="hero-copy-block">
+          <p class="eyebrow">West Peek finance tools</p>
+          <h1>Deal intelligence for venture decisions.</h1>
+          <p class="hero-copy">Model secondary transactions, primary rounds, and fund construction without mixing the assumptions. Each workspace saves independently in your browser.</p>
+        </div>
+        <aside class="hero-utility">
+          <span class="utility-label">Current workspace actions</span>
+          <div class="hero-actions">
+            <button id="resetDefaultsBtn" class="primary">Load saved values</button>
+            <button id="downloadCsvBtn" class="secondary">Export CSV</button>
+            <button id="printPdfBtn" class="secondary">Print / PDF</button>
+            <button id="resetBuiltInBtn" class="text-action">Reset baseline</button>
+            <button id="clearAllBtn" class="danger text-action">Clear workspace</button>
+          </div>
+        </aside>
+      </section>
+
       <div class="print-only print-header">
-        <h1 id="printTitle">Venture Deal Math Dashboards Report</h1>
+        <div class="print-brand"><img src="assets/wp-logo.png" alt="West Peek" /><span>West Peek Deal Intelligence</span></div><h1 id="printTitle">Deal Intelligence Report</h1>
         <p id="printTimestamp"></p>
       </div>
 
@@ -229,6 +235,11 @@
           </div>
         </section>
       </main>
+
+      <footer class="site-footer no-print">
+        <div><strong>West Peek Deal Intelligence</strong><span>Secondaries · Primary Deals · Fund Math</span></div>
+        <p>For scenario analysis and internal decision support. Not legal, tax, accounting, or investment advice.</p>
+      </footer>
     </div>
 
     <template id="cashFlowRowTemplate">
