@@ -188,6 +188,11 @@ function redYellowGreen(score) {
   if (score >= 60) return ['Workable', 'warning'];
   return ['Weak', 'negative'];
 }
+function fundReturnVerdict(fundContribution) {
+  if (fundContribution >= 1) return ['Fund-returning potential', 'positive'];
+  if (fundContribution >= 0.25) return ['Meaningful fund contributor', 'warning'];
+  return ['Not enough fund impact yet', 'negative'];
+}
 
 function getSaved(dashboard) {
   try {
@@ -470,6 +475,7 @@ function recalculatePrimary() {
   const netMoic = safeDiv(netProceeds, check + upfrontFee + mgmtFees);
   const annualized = num('pHoldYears') > 0 && netMoic > 0 ? (Math.pow(netMoic, 1 / num('pHoldYears')) - 1) * 100 : 0;
   const fundContribution = safeDiv(netProceeds, num('pFundSize'));
+  const [fundVerdict, fundVerdictClass] = fundReturnVerdict(fundContribution);
   const nextRoundSize = Math.max(round * 2.5, 5000000);
   const proRataNeed = nextRoundSize * ownership / 100;
   const reserveCoverage = safeDiv(num('pReserve'), proRataNeed) * 100;
@@ -483,6 +489,7 @@ function recalculatePrimary() {
   if (reserveCoverage < 75 && input('pProRata')?.value === 'yes') { score -= 12; reasons.push('reserve does not cover likely pro-rata need'); }
   if (input('pProRata')?.value === 'no') { score -= 15; reasons.push('no pro-rata rights'); }
   if (netMoic < 5) { score -= 14; reasons.push('weak venture-scale return'); }
+  if (fundContribution < 0.25) { score -= 14; reasons.push('not enough fund impact yet'); }
   if (instrument === 'priced' && safeDiv(pre, round) > 8) { score -= 8; reasons.push('valuation high relative to round size'); }
   if (instrument !== 'priced' && !cap) { score -= 10; reasons.push('SAFE/note cap missing'); }
   if (discountPct > 30) { score -= 5; reasons.push('discount is unusually investor-favorable; confirm terms are real'); }
@@ -500,11 +507,17 @@ function recalculatePrimary() {
   setText('pRoundDilution', percent(roundDilution), roundDilution >= b.low && roundDilution <= b.high ? 'positive' : 'warning');
   setText('pPoolIncrease', percent(poolIncrease), poolIncrease <= 5 ? 'positive' : 'warning');
   setText('pExitOwnership', percent(exitOwnership));
+  setText('pWaterfallInvestment', currency(check));
+  setText('pWaterfallOwnership', percent(ownership));
+  setText('pWaterfallDilution', `${percent(num('pFutureDilution'))} future dilution`);
+  setText('pWaterfallExit', currency(num('pExitValue')));
+  setText('pWaterfallFundReturn', `${multiple(fundContribution)} of fund`);
   setText('pGrossProceeds', currency(grossProceeds));
   setText('pNetProceeds', currency(netProceeds));
   setText('pNetMoic', multiple(netMoic), netMoic >= 10 ? 'positive' : netMoic >= 5 ? 'warning' : 'negative');
   setText('pAnnualized', percent(annualized), annualized >= 30 ? 'positive' : annualized >= 20 ? 'warning' : 'negative');
-  setText('pFundContribution', `${multiple(fundContribution)} of fund`, fundContribution >= 0.25 ? 'positive' : 'warning');
+  setText('pFundContribution', `${multiple(fundContribution)} of fund`, fundContribution >= 1 ? 'positive' : fundContribution >= 0.25 ? 'warning' : 'negative');
+  setText('pFundReturnVerdict', fundVerdict, fundVerdictClass);
   setText('pNextRoundSize', currency(nextRoundSize));
   setText('pProRataNeed', currency(proRataNeed));
   setText('pReserveCoverage', percent(reserveCoverage), reserveCoverage >= 100 ? 'positive' : reserveCoverage >= 75 ? 'warning' : 'negative');
@@ -522,7 +535,8 @@ function recalculatePrimary() {
     ['Deal', `${text('pCompanyName', 'Primary deal')} · ${stage} · ${instrument}`],
     ['Valuation / conversion basis', `${currency(effectiveValuation)} effective conversion valuation; ${currency(post)} modeled post/conversion value`],
     ['Ownership', `${percent(ownership)} at close/conversion; ${percent(exitOwnership)} after assumed future dilution`],
-    ['Return case', `${currency(num('pExitValue'))} exit produces ${multiple(netMoic)} net MOIC and ${percent(annualized)} annualized`],
+    ['Return case', `${currency(num('pExitValue'))} exit produces ${multiple(netMoic)} net MOIC, ${percent(annualized)} annualized, and ${multiple(fundContribution)} of fund`],
+    ['Fund Return Case', `Investment ${currency(check)} → ownership ${percent(ownership)} → post-dilution ownership ${percent(exitOwnership)} → exit ${currency(num('pExitValue'))} → ${multiple(fundContribution)} of fund. Verdict: ${fundVerdict}`],
     ['Reserve plan', `${currency(num('pReserve'))} reserve vs ${currency(proRataNeed)} modeled pro-rata need`],
     ['Signal', `${signal} (${score}/100): ${reasons[0] || 'directionally coherent'}`]
   ];

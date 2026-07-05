@@ -101,6 +101,15 @@ td:last-child, th:last-child { text-align: right; }
 .warning { color: var(--warn)!important; background: var(--warn-bg); border-color: #ecd9ad; }
 .neutral { color: var(--text)!important; }
 .top-gap { margin-top: 16px; }
+
+.waterfall { display: grid; grid-template-columns: minmax(130px,1fr) auto minmax(130px,1fr) auto minmax(130px,1fr) auto minmax(130px,1fr) auto minmax(150px,1.15fr); gap: 10px; align-items: stretch; }
+.waterfall-step { display: grid; gap: 6px; align-content: center; min-height: 86px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--cream); }
+.waterfall-step span { color: var(--muted); font-size: .78rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.waterfall-step strong { font-family: Georgia, 'Times New Roman', serif; font-size: 1.15rem; line-height: 1.15; }
+.waterfall-step.emphasized { background: var(--black); border-color: var(--black); color: var(--white); }
+.waterfall-step.emphasized span { color: rgba(255,255,255,.64); }
+.waterfall-arrow { display: grid; place-items: center; color: var(--orange-dark); font-weight: 900; font-size: 1.2rem; }
+.fund-guidance { max-width: 470px; line-height: 1.45; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 .print-only { display: none; }
@@ -112,6 +121,8 @@ td:last-child, th:last-child { text-align: right; }
 
 @media (max-width: 1180px) {
   .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .waterfall { grid-template-columns: 1fr; }
+  .waterfall-arrow { transform: rotate(90deg); min-height: 16px; }
   .span-3 { grid-column: span 2; }
   .instruction-grid { grid-template-columns: 1fr; }
   .alloc-row { grid-template-columns: repeat(2,minmax(0,1fr)); background: var(--cream); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }

@@ -1,0 +1,14 @@
+{
+  "name": "venture-deal-math-dashboards",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static venture deal math dashboards.",
+  "scripts": {
+    "lint": "node --check app.js",
+    "test": "npm run lint && npm run test:playwright",
+    "test:playwright": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0"
+  }
+}
