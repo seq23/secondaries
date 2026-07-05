@@ -93,4 +93,12 @@ Run local browser validation or Playwright after implementation:
 
 ## ChatGPT connector boundary
 
-The ChatGPT GitHub connector can create branches, files, issues, and PRs, but its current file-update operation requires complete whole-file replacement. Do not perform partial destructive source writes unless the complete current file content is safely reconstructed first.
+The ChatGPT GitHub connector can create branches, files, issues, PRs, and whole-file updates, but it does not run local code or Playwright. Its source-file update action requires complete whole-file replacement, so do not perform partial destructive source writes unless the complete current file content is safely reconstructed first.
+
+## Codex handoff command
+
+Use this exact Codex instruction against `seq23/secondaries`:
+
+```text
+Implement Issue #1. Use the acceptance criteria in docs/fund-return-waterfall-implementation.md. Modify index.html and app.js only unless tests require minimal Playwright setup. Run local validation and Playwright if available. Open a PR with screenshots/artifacts and validation results. Do not commit directly to main.
+```
