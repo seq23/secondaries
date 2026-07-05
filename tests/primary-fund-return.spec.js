@@ -1,6 +1,15 @@
 const { test, expect } = require('@playwright/test');
 
-test('Primary Deals shows fund-return waterfall, verdict, and memo row', async ({ page }) => {
+async function setPrimaryScenario(page, exitValue) {
+  await page.locator('#pCheckSize').fill('500000');
+  await page.locator('#pRoundSize').fill('3500000');
+  await page.locator('#pPreMoney').fill('12000000');
+  await page.locator('#pFutureDilution').fill('35');
+  await page.locator('#pFundSize').fill('25000000');
+  await page.locator('#pExitValue').fill(String(exitValue));
+}
+
+test('Primary Deals shows fund-return waterfall and all verdict states', async ({ page }) => {
   await page.goto('/index.html');
   await page.getByRole('button', { name: 'Primary Deals' }).click();
 
@@ -9,13 +18,7 @@ test('Primary Deals shows fund-return waterfall, verdict, and memo row', async (
   await expect(page.getByText('Do not approve on company quality alone.')).toBeVisible();
   await expect(page.getByText('Great company ≠ great fund investment.')).toBeVisible();
 
-  await page.locator('#pCheckSize').fill('500000');
-  await page.locator('#pRoundSize').fill('3500000');
-  await page.locator('#pPreMoney').fill('12000000');
-  await page.locator('#pExitValue').fill('250000000');
-  await page.locator('#pFutureDilution').fill('35');
-  await page.locator('#pFundSize').fill('25000000');
-
+  await setPrimaryScenario(page, 250000000);
   await expect(page.locator('#pWaterfallInvestment')).toContainText('$500,000');
   await expect(page.locator('#pWaterfallOwnership')).toContainText('3.23%');
   await expect(page.locator('#pWaterfallDilution')).toContainText('35.00% future dilution');
@@ -24,6 +27,18 @@ test('Primary Deals shows fund-return waterfall, verdict, and memo row', async (
   await expect(page.locator('#pFundReturnVerdict')).toHaveText('Not enough fund impact yet');
   await expect(page.locator('#pMemoBody')).toContainText('Fund Return Case');
   await expect(page.locator('#pMemoBody')).toContainText('Investment $500,000 → ownership');
+
+  await setPrimaryScenario(page, 500000000);
+  await expect(page.locator('#pWaterfallExit')).toContainText('$500,000,000');
+  await expect(page.locator('#pWaterfallFundReturn')).toContainText('0.34x of fund');
+  await expect(page.locator('#pFundReturnVerdict')).toHaveText('Meaningful fund contributor');
+  await expect(page.locator('#pMemoBody')).toContainText('Verdict: Meaningful fund contributor');
+
+  await setPrimaryScenario(page, 1500000000);
+  await expect(page.locator('#pWaterfallExit')).toContainText('$1,500,000,000');
+  await expect(page.locator('#pWaterfallFundReturn')).toContainText('1.01x of fund');
+  await expect(page.locator('#pFundReturnVerdict')).toHaveText('Fund-returning potential');
+  await expect(page.locator('#pMemoBody')).toContainText('Verdict: Fund-returning potential');
 
   await page.screenshot({ path: 'screenshots/primary-fund-return-waterfall.png', fullPage: true });
 });
