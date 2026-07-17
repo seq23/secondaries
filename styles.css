@@ -180,3 +180,12 @@ td:last-child, th:last-child { text-align: right; }
   .metric.big { background: #fff; color: #000; border: 2px solid #000; }
   .metric.big span { color: #444; }
 }
+
+.recommended-row td {
+  background: var(--surface-strong, #eef5ef);
+  font-weight: 700;
+}
+
+.form-grid.one-col {
+  grid-template-columns: 1fr;
+}
