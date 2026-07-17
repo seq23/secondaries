@@ -17,6 +17,7 @@
           <button class="nav-link active" data-tab="instructions" type="button">Overview</button>
           <button class="nav-link" data-tab="secondary" type="button">Secondary Deals</button>
           <button class="nav-link" data-tab="primary" type="button">Primary Deals</button>
+          <button class="nav-link" data-tab="followon" type="button">Follow-On Decision</button>
           <button class="nav-link" data-tab="fund" type="button">Fund Math</button>
         </nav>
       </header>
@@ -75,7 +76,12 @@
                   </ul>
                 </div>
                 <div class="subcard">
-                  <h3>3. Fund Math</h3>
+                  <h3>3. Follow-On Decision</h3>
+                  <p>Use this when an existing portfolio company raises again. Compare skip, pro rata, super pro rata, and secondary purchase paths, then rank the opportunity against portfolio constraints.</p>
+                  <ul><li>Best for reserve allocation and ownership-defense decisions.</li><li>Key outputs: check required, ownership, blended cost, incremental MOIC/IRR, fund concentration, score, and recommendation.</li><li>Watch-outs: anchoring to the old investment, over-concentration, weak incremental returns, and cheaper secondary shares with inferior rights.</li></ul>
+                </div>
+                <div class="subcard">
+                  <h3>4. Fund Math</h3>
                   <p>Use this before pitching LPs or changing strategy. It converts fund size into management fees, investable capital, initial checks, reserves, ownership targets, stage allocation, follow-on budget, and required power-law outcomes.</p>
                   <ul>
                     <li>Best for emerging managers building or defending portfolio construction.</li>
@@ -204,6 +210,25 @@
           </div>
         </section>
 
+
+        <section id="tab-followon" class="tab-panel">
+          <div class="grid">
+            <section class="card span-2"><div class="section-heading"><div><h2>Follow-on position and round</h2><p>Re-underwrite the company as a new investment, then compare every ownership path.</p></div><div class="notice-box" id="foStatus"></div></div><div class="form-grid">
+              <label>Company<input data-model="followon" id="foCompany" type="text" /></label><label>Existing invested capital ($)<input data-model="followon" id="foExistingCost" type="number" min="0" step="1000" /></label><label>Current ownership (%)<input data-model="followon" id="foCurrentOwnership" type="number" min="0" step="0.01" /></label><label>Current fully diluted shares<input data-model="followon" id="foCurrentFD" type="number" min="0" step="1" /></label>
+              <label>New round pre-money ($)<input data-model="followon" id="foPreMoney" type="number" min="0" step="100000" /></label><label>New primary round size ($)<input data-model="followon" id="foRoundSize" type="number" min="0" step="100000" /></label><label>Option-pool / other concurrent dilution (%)<input data-model="followon" id="foExtraDilution" type="number" min="0" step="0.01" /></label><label>Maximum primary allocation available ($)<input data-model="followon" id="foMaxAllocation" type="number" min="0" step="1000" /></label>
+              <label>Super pro rata target ownership (%)<input data-model="followon" id="foTargetOwnership" type="number" min="0" step="0.01" /></label><label>Secondary capital available ($)<input data-model="followon" id="foSecondaryCapital" type="number" min="0" step="1000" /></label><label>Primary price per share ($)<input data-model="followon" id="foPrimaryPps" type="number" min="0" step="0.01" /></label><label>Secondary price per share ($)<input data-model="followon" id="foSecondaryPps" type="number" min="0" step="0.01" /></label>
+              <label>Secondary transaction fees (%)<input data-model="followon" id="foSecondaryFees" type="number" min="0" step="0.01" /></label><label>Future dilution before exit (%)<input data-model="followon" id="foFutureDilution" type="number" min="0" step="0.01" /></label><label>Expected exit value ($)<input data-model="followon" id="foExitValue" type="number" min="0" step="1000000" /></label><label>Expected years to exit<input data-model="followon" id="foHoldYears" type="number" min="0" step="0.1" /></label>
+            </div></section>
+            <section class="card"><div class="section-heading"><div><h2>Portfolio constraints</h2><p>Force the deal to compete for scarce fund capital.</p></div></div><div class="form-grid one-col">
+              <label>Fund size ($)<input data-model="followon" id="foFundSize" type="number" min="0" step="100000" /></label><label>Remaining reserves ($)<input data-model="followon" id="foRemainingReserves" type="number" min="0" step="100000" /></label><label>Maximum company concentration (% of fund)<input data-model="followon" id="foMaxConcentration" type="number" min="0" step="0.01" /></label><label>Minimum incremental MOIC (x)<input data-model="followon" id="foMinMoic" type="number" min="0" step="0.1" /></label><label>Minimum incremental IRR (%)<input data-model="followon" id="foMinIrr" type="number" min="0" step="0.1" /></label>
+              <label>Thesis strength (1–5)<input data-model="followon" id="foThesis" type="number" min="1" max="5" step="1" /></label><label>Performance vs plan (1–5)<input data-model="followon" id="foPerformance" type="number" min="1" max="5" step="1" /></label><label>Strategic ownership importance (1–5)<input data-model="followon" id="foOwnershipImportance" type="number" min="1" max="5" step="1" /></label><label>Confidence (1–5)<input data-model="followon" id="foConfidence" type="number" min="1" max="5" step="1" /></label>
+            </div></section>
+            <section class="card span-3"><div class="section-heading"><div><h2>Scenario comparison</h2><p>Total-position and incremental economics are shown separately so an old winner cannot hide a weak new check.</p></div><div class="notice-box positive" id="foRecommendation"></div></div><div class="table-wrap"><table><thead><tr><th>Strategy</th><th>New capital</th><th>Post-round ownership</th><th>Exit ownership</th><th>Incremental MOIC</th><th>Incremental IRR</th><th>Total MOIC</th><th>Fund concentration</th><th>Score</th></tr></thead><tbody id="foScenarioBody"></tbody></table></div></section>
+            <section class="card"><div class="section-heading"><div><h2>Capital allocation read</h2></div></div><div class="metric-stack"><div class="metric"><span>Pro rata check</span><strong id="foProRataCheck"></strong></div><div class="metric"><span>Super pro rata check</span><strong id="foSuperCheck"></strong></div><div class="metric"><span>Secondary discount / premium</span><strong id="foSecondarySpread"></strong></div><div class="metric"><span>Reserve after recommendation</span><strong id="foReserveAfter"></strong></div></div></section>
+            <section class="card span-2"><div class="section-heading"><div><h2>IC decision memo</h2><p>Copy these rows into the investment committee note.</p></div></div><div class="table-wrap"><table><thead><tr><th>Memo item</th><th>Output</th></tr></thead><tbody id="foMemoBody"></tbody></table></div></section>
+          </div>
+        </section>
+
         <section id="tab-fund" class="tab-panel">
           <div class="grid">
             <section class="card span-2"><div class="section-heading"><div><h2>Fund-level inputs</h2><p>Emerging-manager construction math LPs will dig into: fund size, fees, GP commit, investable capital, deployment, reserves, ownership, and return power law.</p></div><div class="notice-box" id="fundStatus"></div></div><div class="form-grid">
@@ -237,7 +262,7 @@
       </main>
 
       <footer class="site-footer no-print">
-        <div><strong>West Peek Deal Intelligence</strong><span>Secondaries · Primary Deals · Fund Math</span></div>
+        <div><strong>West Peek Deal Intelligence</strong><span>Secondaries · Primary Deals · Follow-On Decisions · Fund Math</span></div>
         <p>For scenario analysis and internal decision support. Not legal, tax, accounting, or investment advice.</p>
       </footer>
     </div>

@@ -2,6 +2,7 @@ const STORAGE_VERSION = 'ventureDealDashboardsV1';
 const STORAGE_KEYS = {
   secondary: `${STORAGE_VERSION}:secondary`,
   primary: `${STORAGE_VERSION}:primary`,
+  followon: `${STORAGE_VERSION}:followon`,
   fund: `${STORAGE_VERSION}:fund`
 };
 
@@ -9,6 +10,7 @@ const DASHBOARD_TITLES = {
   instructions: 'Instructions',
   secondary: 'Secondary Deals',
   primary: 'Primary Deals',
+  followon: 'Follow-On Decision',
   fund: 'Fund Math'
 };
 
@@ -86,6 +88,13 @@ const BASELINES = {
     pReserve: 1000000,
     pFundSize: 25000000
   },
+  followon: {
+    foCompany: 'Sample Portfolio Company', foExistingCost: 1000000, foCurrentOwnership: 8, foCurrentFD: 10000000,
+    foPreMoney: 80000000, foRoundSize: 20000000, foExtraDilution: 0, foMaxAllocation: 4000000, foTargetOwnership: 10,
+    foSecondaryCapital: 2800000, foPrimaryPps: 10, foSecondaryPps: 8.5, foSecondaryFees: 1, foFutureDilution: 30,
+    foExitValue: 1000000000, foHoldYears: 5, foFundSize: 25000000, foRemainingReserves: 10000000,
+    foMaxConcentration: 15, foMinMoic: 3, foMinIrr: 25, foThesis: 4, foPerformance: 5, foOwnershipImportance: 4, foConfidence: 4
+  },
   fund: {
     fFundName: 'Emerging Manager Fund I',
     fFundSize: 25000000,
@@ -121,6 +130,7 @@ const BASELINES = {
 const FIELD_IDS = {
   secondary: Object.keys(BASELINES.secondary).filter((key) => key !== 'cashFlows'),
   primary: Object.keys(BASELINES.primary),
+  followon: Object.keys(BASELINES.followon),
   fund: Object.keys(BASELINES.fund)
 };
 
@@ -544,6 +554,125 @@ function recalculatePrimary() {
   setText('primaryStatus', 'Saved values auto-update in this browser as you edit. SAFE/note math is an approximation; legal docs still control.');
 }
 
+
+function recalculateFollowOn() {
+  const currentOwn = num('foCurrentOwnership') / 100;
+  const pre = num('foPreMoney');
+  const round = num('foRoundSize');
+  const extraFactor = Math.max(1 - num('foExtraDilution') / 100, 0);
+  const futureFactor = Math.max(1 - num('foFutureDilution') / 100, 0);
+  const exitValue = num('foExitValue');
+  const years = Math.max(num('foHoldYears'), 0.01);
+  const existingCost = num('foExistingCost');
+  const fundSize = num('foFundSize');
+  const reserves = num('foRemainingReserves');
+  const maxConcentration = num('foMaxConcentration');
+  const minMoic = num('foMinMoic');
+  const minIrr = num('foMinIrr');
+  const primaryPps = num('foPrimaryPps');
+  const secondaryPps = num('foSecondaryPps');
+  const fd = num('foCurrentFD');
+  const maxAllocation = num('foMaxAllocation');
+  const targetOwn = num('foTargetOwnership') / 100;
+  const secondaryGross = num('foSecondaryCapital');
+  const secondaryCost = secondaryGross * (1 + num('foSecondaryFees') / 100);
+  const primaryNewShares = primaryPps > 0 ? round / primaryPps : 0;
+  const postFd = fd + primaryNewShares;
+  const existingShares = fd * currentOwn;
+  const impliedPreMoney = fd * primaryPps;
+  const valuationMismatch = pre > 0 ? Math.abs(impliedPreMoney / pre - 1) * 100 : 0;
+
+  // Share-count math controls ownership. The valuation fields are used as a
+  // cross-check because actual cap-table shares and round PPS determine dilution.
+  const proRataRequired = currentOwn * primaryNewShares * primaryPps;
+  const proRataCheck = maxAllocation > 0 ? Math.min(proRataRequired, maxAllocation) : proRataRequired;
+  const proRataShortfall = Math.max(proRataRequired - proRataCheck, 0);
+  const superSharesRequired = Math.max(targetOwn * postFd - existingShares, 0);
+  const superRequired = superSharesRequired * primaryPps;
+  const superCheck = maxAllocation > 0 ? Math.min(superRequired, maxAllocation) : superRequired;
+  const superShortfall = Math.max(superRequired - superCheck, 0);
+
+  function primaryOwnership(check) {
+    if (primaryPps <= 0 || postFd <= 0) return 0;
+    return (existingShares + check / primaryPps) / postFd * extraFactor;
+  }
+
+  const skipOwn = postFd > 0 ? existingShares / postFd * extraFactor : 0;
+  const secondaryShares = secondaryPps > 0 ? secondaryGross / secondaryPps : 0;
+  const secondaryOwn = postFd > 0 ? (existingShares + secondaryShares) / postFd * extraFactor : skipOwn;
+  const qualitative = (num('foThesis') + num('foPerformance') + num('foOwnershipImportance') + num('foConfidence')) / 20;
+
+  const scenarios = [
+    { key: 'skip', label: 'Skip', capital: 0, own: skipOwn, executable: true, constraintNote: '' },
+    {
+      key: 'pro', label: 'Exercise pro rata', capital: proRataCheck, own: primaryOwnership(proRataCheck),
+      executable: proRataShortfall <= 0.01,
+      constraintNote: proRataShortfall > 0.01 ? `Allocation shortfall ${currency(proRataShortfall)}` : ''
+    },
+    {
+      key: 'super', label: 'Super pro rata', capital: superCheck, own: primaryOwnership(superCheck),
+      executable: superShortfall <= 0.01,
+      constraintNote: superShortfall > 0.01 ? `Allocation shortfall ${currency(superShortfall)}` : ''
+    },
+    { key: 'secondary', label: 'Buy secondary', capital: secondaryCost, own: secondaryOwn, executable: secondaryPps > 0 && secondaryGross > 0, constraintNote: secondaryPps <= 0 || secondaryGross <= 0 ? 'No executable secondary block' : '' }
+  ].map((x) => {
+    const exitOwn = x.own * futureFactor;
+    const proceeds = exitOwn * exitValue;
+    const skipProceeds = skipOwn * futureFactor * exitValue;
+    const incrementalProceeds = Math.max(proceeds - skipProceeds, 0);
+    const incMoic = x.capital > 0 ? incrementalProceeds / x.capital : 0;
+    const incIrr = x.capital > 0 && incMoic > 0 ? (Math.pow(incMoic, 1 / years) - 1) * 100 : 0;
+    const totalMoic = existingCost + x.capital > 0 ? proceeds / (existingCost + x.capital) : 0;
+    const concentration = fundSize > 0 ? (existingCost + x.capital) / fundSize * 100 : 0;
+    let score = x.key === 'skip' ? 25 : 50;
+    score += qualitative * 25;
+    if (x.capital > 0) score += Math.min(incMoic / Math.max(minMoic, .1), 1.5) * 15;
+    if (x.capital > 0) score += Math.min(incIrr / Math.max(minIrr, .1), 1.5) * 10;
+    if (x.capital > reserves) score -= 30;
+    if (concentration > maxConcentration) score -= 25;
+    if (!x.executable) score -= 35;
+    if (x.key === 'secondary' && secondaryPps >= primaryPps && primaryPps > 0) score -= 8;
+    return { ...x, exitOwn, proceeds, incMoic, incIrr, totalMoic, concentration, score: Math.max(0, Math.min(100, Math.round(score))) };
+  });
+
+  const eligible = scenarios.filter((x) => x.key === 'skip' || (
+    x.executable && x.capital <= reserves && x.concentration <= maxConcentration &&
+    x.incMoic >= minMoic && x.incIrr >= minIrr
+  ));
+  const best = (eligible.length ? eligible : scenarios).slice().sort((a, b) => b.score - a.score)[0];
+
+  setHtml('foScenarioBody', scenarios.map((x) => {
+    const label = `${x.label}${x.key === best.key ? ' · Recommended' : ''}`;
+    const note = x.constraintNote ? `<div class="table-note warning">${x.constraintNote}</div>` : '';
+    return `<tr class="${x.key === best.key ? 'recommended-row' : ''}"><td>${label}${note}</td><td>${currency(x.capital)}</td><td>${percent(x.own * 100)}</td><td>${percent(x.exitOwn * 100)}</td><td>${x.capital ? multiple(x.incMoic) : '—'}</td><td>${x.capital ? percent(x.incIrr) : '—'}</td><td>${multiple(x.totalMoic)}</td><td>${percent(x.concentration)}</td><td>${x.score}/100</td></tr>`;
+  }).join(''));
+  setText('foRecommendation', `${best.label}: highest-scoring eligible use of capital under the current return, reserve, allocation, and concentration constraints.`);
+  setText('foProRataCheck', currency(proRataRequired));
+  setText('foSuperCheck', currency(superRequired));
+  const spread = primaryPps > 0 ? (secondaryPps / primaryPps - 1) * 100 : 0;
+  setText('foSecondarySpread', `${spread <= 0 ? 'Discount' : 'Premium'} ${percent(Math.abs(spread))}`);
+  setText('foReserveAfter', currency(Math.max(reserves - best.capital, 0)));
+
+  const warnings = [];
+  if (valuationMismatch > 1) warnings.push(`Cap-table cross-check: FD shares × primary PPS imply ${currency(impliedPreMoney)}, which differs from entered pre-money by ${percent(valuationMismatch)}. Ownership math uses shares and PPS.`);
+  if (proRataShortfall > 0.01) warnings.push(`The maximum primary allocation is ${currency(proRataShortfall)} short of full pro rata.`);
+  if (superShortfall > 0.01) warnings.push(`The maximum primary allocation is ${currency(superShortfall)} short of the super-pro-rata target.`);
+  setText('foStatus', warnings.length ? warnings.join(' ') : 'Saved values auto-update. Share-count math controls ownership; the recommendation remains a transparent scoring aid, not an autonomous investment decision.', warnings.length ? 'warning' : '');
+
+  const memo = [
+    ['Company', text('foCompany', 'Portfolio company')],
+    ['Decision', best.label],
+    ['Re-underwrite', `Thesis ${num('foThesis')}/5 · performance ${num('foPerformance')}/5 · confidence ${num('foConfidence')}/5`],
+    ['Ownership', `${percent(currentOwn * 100)} current → ${percent(best.own * 100)} post-round → ${percent(best.exitOwn * 100)} at exit after modeled dilution`],
+    ['Incremental economics', best.capital ? `${currency(best.capital)} new capital · ${multiple(best.incMoic)} incremental MOIC · ${percent(best.incIrr)} incremental IRR` : 'No new capital deployed'],
+    ['Portfolio impact', `${percent(best.concentration)} of fund cost basis · ${currency(Math.max(reserves - best.capital, 0))} reserves remaining`],
+    ['Secondary comparison', `${currency(secondaryPps, 2)} per share vs ${currency(primaryPps, 2)} primary (${spread <= 0 ? 'discount' : 'premium'} ${percent(Math.abs(spread))})`],
+    ['Cap-table validation', valuationMismatch <= 1 ? 'Entered pre-money, fully diluted shares, and primary PPS are directionally consistent.' : `Resolve ${percent(valuationMismatch)} valuation/PPS mismatch before IC approval.`],
+    ['IC rule', 'Approve only if this remains the highest and best use of the fund’s next dollar.']
+  ];
+  setHtml('foMemoBody', memo.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join(''));
+}
+
 function recalculateFund() {
   const fundSize = num('fFundSize');
   const fees = fundSize * num('fMgmtFeePct') / 100 * num('fFeeYears');
@@ -657,6 +786,7 @@ function recalculateFund() {
 function recalculateAll() {
   recalculateSecondary();
   recalculatePrimary();
+  recalculateFollowOn();
   recalculateFund();
 }
 
@@ -673,6 +803,10 @@ function exportCsvForDashboard(dashboard) {
     getCashFlowRows().forEach((cf) => rows.push([cf.date, cf.desc, cf.amount]));
     rows.push([], ['Outputs'], ['Premium / discount', el('premiumDiscountValue')?.textContent], ['Classification', el('premiumDiscountLabel')?.textContent]);
     Array.from(document.querySelectorAll('#comparisonBody tr')).forEach((tr) => rows.push(Array.from(tr.children).map((td) => td.textContent)));
+  }
+  if (dashboard === 'followon') {
+    rows.push([], ['Outputs']);
+    Array.from(document.querySelectorAll('#foMemoBody tr')).forEach((tr) => rows.push(Array.from(tr.children).map((td) => td.textContent)));
   }
   if (dashboard === 'primary') {
     rows.push([], ['Outputs']);
@@ -722,7 +856,7 @@ function wireEvents() {
 }
 
 function boot() {
-  ['secondary','primary','fund'].forEach((dashboard) => applyDashboard(dashboard, getSaved(dashboard)));
+  ['secondary','primary','followon','fund'].forEach((dashboard) => applyDashboard(dashboard, getSaved(dashboard)));
   wireEvents();
   switchTab('instructions');
   recalculateAll();

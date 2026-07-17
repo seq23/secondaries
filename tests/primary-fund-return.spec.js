@@ -1,4 +1,31 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
+async function loadDashboard(page) {
+  if (process.env.PLAYWRIGHT_USE_INLINE === '1') {
+    await page.evaluate(() => {
+      const store = {};
+      Object.defineProperty(window, 'localStorage', {
+        configurable: true,
+        value: {
+          getItem: (key) => Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null,
+          setItem: (key, value) => { store[key] = String(value); },
+          removeItem: (key) => { delete store[key]; },
+          clear: () => { Object.keys(store).forEach((key) => delete store[key]); }
+        }
+      });
+    });
+    const root = path.resolve(__dirname, '..');
+    let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
+    const js = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+    html = html.replace('<link rel="stylesheet" href="styles.css" />', `<style>${css}</style>`);
+    html = html.replace('<script src="app.js"></script>', `<script>${js}</script>`);
+    await page.setContent(html, { waitUntil: 'load' });
+    return;
+  }
+  await page.goto('/index.html');
+}
 
 async function setPrimaryScenario(page, exitValue) {
   await page.locator('#pCheckSize').fill('500000');
@@ -10,7 +37,7 @@ async function setPrimaryScenario(page, exitValue) {
 }
 
 test('Primary Deals shows fund-return waterfall and all verdict states', async ({ page }) => {
-  await page.goto('/index.html');
+  await loadDashboard(page);
   await page.getByRole('button', { name: 'Primary Deals' }).click();
 
   await expect(page.getByRole('heading', { name: 'Fund Return Math' })).toBeVisible();
