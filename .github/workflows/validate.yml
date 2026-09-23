@@ -23,6 +23,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run validate:runbook
+      - run: npm run test:middleware
       - run: npx playwright install --with-deps chromium
       - run: npm run test:playwright
         env:

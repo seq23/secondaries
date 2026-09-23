@@ -33,6 +33,11 @@ Every file at the root is publicly served, including this one. Never commit anyt
 - **The custom domain is canonical.** `functions/_middleware.js` adds `X-Robots-Tag: noindex` on
   `*.pages.dev` only; it must never apply to venturedeals.joinwestpeek.com. New pages carry a
   canonical to `https://venturedeals.joinwestpeek.com/...` and a line in `sitemap.xml`.
+- **The repo root IS the site, so repo-internal files are blocked at the edge.** `functions/_middleware.js`
+  answers 404 for `*.md`, `package.json`, `scripts/`, `tests/`, `functions/`, `.github/` and root
+  dotfiles on every host (23 Sep 2026: RUNBOOK.md, AGENTS.md and package.json were publicly served).
+  A new internal file type goes on that list; a new public file must not match it. Unknown paths get
+  `404.html` with a real 404 status, never the home page.
 - **Crawlers are welcome** (`robots.txt`, citation-first). Do not add blanket Disallow rules.
 - **Merge only on all-green checks**, never `--admin`, never force-pushed (`AGENTS.md`).
 - **Decisions an employee must ask, not make**: brand or colour, copy meaning, the advice
@@ -43,13 +48,14 @@ Every file at the root is publicly served, including this one. Never commit anyt
 1. Branch `work/<slug>` off `main`.
 2. Edit the root files (`index.html`, `app.js`, `styles.css`, ...). A formula change needs a
    Playwright assertion in `tests/` that pins the new number.
-3. Validate — the same three steps `.github/workflows/validate.yml` runs on the PR:
+3. Validate — the same four steps `.github/workflows/validate.yml` runs on the PR:
    - `npm run lint` (syntax check of `app.js`)
    - `npm run validate:runbook`
+   - `npm run test:middleware` (internal files 404, every public page and asset passes)
    - `npm run test:playwright` (serves the root on :4173 via `python3 -m http.server`;
      first time on a machine: `npx playwright install chromium`, or point
      `PLAYWRIGHT_CHROMIUM_PATH` at an installed Chromium — `playwright.config.js` honours it)
-   `npm test` runs lint + Playwright together.
+   `npm test` runs lint, the middleware test and Playwright together.
 4. Look at it: `python3 -m http.server 4173` from the root, open each tab at desktop and 390px.
 5. Commit, push, open a PR. Cloudflare Pages posts a preview URL
    (`https://<hash>.secondaries.pages.dev`) on the PR — check the change there.
@@ -66,10 +72,11 @@ deployments only. A red "Cloudflare Pages" check on `main` means production did 
 ## Guards, and what each pins
 | Guard | Pins |
 |---|---|
-| `.github/workflows/validate.yml` | runs lint, runbook check and Playwright on every PR and on `main` |
+| `.github/workflows/validate.yml` | runs lint, runbook check, middleware test and Playwright on every PR and on `main` |
 | `npm run lint` | `app.js` parses |
 | `tests/follow-on-decision.spec.js` | Follow-On Decision: four paths, IC recommendation, constraint disqualification, share-count dilution warnings |
 | `tests/primary-fund-return.spec.js` | Primary Deals fund-return waterfall and every verdict state |
+| `tests/middleware.check.mjs` | repo-internal files answer 404 on both hosts; every page and asset `index.html`/`standards.html` reference still passes; `X-Robots-Tag` only on `*.pages.dev` |
 | `scripts/validate_runbook.mjs` | this file names real paths and scripts |
 
 Prove a new guard negatively before merging: plant the defect, watch it fail, remove it.
