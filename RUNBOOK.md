@@ -53,8 +53,11 @@ Every file at the root is publicly served, including this one. Never commit anyt
    - `npm run validate:runbook`
    - `npm run test:middleware` (internal files 404, every public page and asset passes)
    - `npm run test:playwright` (serves the root on :4173 via `python3 -m http.server`;
-     first time on a machine: `npx playwright install chromium`, or point
-     `PLAYWRIGHT_CHROMIUM_PATH` at an installed Chromium — `playwright.config.js` honours it)
+     `scripts/playwright_preflight.mjs` first launches the exact Chromium the suite uses and, if it
+     will not start, prints the fix: `npx playwright install --force chromium` (`--force` matters:
+     a truncated install marked complete is otherwise skipped). Or point `PLAYWRIGHT_CHROMIUM_PATH`
+     at an installed Chromium — `playwright.config.js` honours it. `@playwright/test` is pinned
+     exactly, to the version west-peek-os and boss-os use, so this Mac shares one browser cache)
    `npm test` runs lint, the middleware test and Playwright together.
 4. Look at it: `python3 -m http.server 4173` from the root, open each tab at desktop and 390px.
 5. Commit, push, open a PR. Cloudflare Pages posts a preview URL
@@ -74,6 +77,7 @@ deployments only. A red "Cloudflare Pages" check on `main` means production did 
 |---|---|
 | `.github/workflows/validate.yml` | runs lint, runbook check, middleware test and Playwright on every PR and on `main` |
 | `npm run lint` | `app.js` parses |
+| `scripts/playwright_preflight.mjs` | Chromium launches before any spec runs; a broken browser install fails once, with the fix command, not as N opaque spec failures |
 | `tests/follow-on-decision.spec.js` | Follow-On Decision: four paths, IC recommendation, constraint disqualification, share-count dilution warnings |
 | `tests/primary-fund-return.spec.js` | Primary Deals fund-return waterfall and every verdict state |
 | `tests/middleware.check.mjs` | repo-internal files answer 404 on both hosts; every page and asset `index.html`/`standards.html` reference still passes; `X-Robots-Tag` only on `*.pages.dev` |
