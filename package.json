@@ -6,11 +6,11 @@
   "scripts": {
     "lint": "node --check app.js",
     "test": "npm run lint && npm run test:middleware && npm run test:playwright",
-    "test:playwright": "playwright test",
+    "test:playwright": "node scripts/playwright_preflight.mjs && playwright test",
     "validate:runbook": "node scripts/validate_runbook.mjs",
     "test:middleware": "node tests/middleware.check.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.45.0"
+    "@playwright/test": "1.62.1"
   }
 }
