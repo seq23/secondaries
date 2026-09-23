@@ -1,0 +1,29 @@
+# Merge gate for the static deal-math site. Cloudflare Pages deploys main on push; this is the
+# check that must be green first. It is also the run ~/bin/land watches on main.
+name: validate
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run validate:runbook
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:playwright
+        env:
+          CI: "1"
