@@ -1,10 +1,18 @@
-# Merge gate for the static deal-math site. Cloudflare Pages deploys main on push; this is the
-# check that must be green first. It is also the run ~/bin/land watches on main.
+# The MERGE GATE for the static deal-math site: lint, runbook + workflow guards, the middleware
+# test — under a minute. It is the run ~/bin/land watches on `main`.
+#
+# Build first, test in batches (26 Sep 2026): the Playwright suite is NOT here. It runs nightly and
+# on dispatch in `e2e.yml`, and gates PRODUCTION, not the merge: Cloudflare Pages builds every push
+# to `main` as the staging preview (https://main.secondaries.pages.dev) and builds the `production`
+# branch to venturedeals.joinwestpeek.com; `promote.yml` moves that branch only to a sha the suite
+# has passed. `scripts/validate_workflows.mjs` fails this run if the suite ever comes back on push
+# or pull_request.
 name: validate
 on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -13,7 +21,8 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Normal: ~40 s (runs 35881005343, 35880519560 took 35 s and 42 s WITH Playwright).
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,8 +32,5 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run validate:runbook
+      - run: npm run validate:workflows
       - run: npm run test:middleware
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:playwright
-        env:
-          CI: "1"

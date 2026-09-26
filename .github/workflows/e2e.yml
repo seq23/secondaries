@@ -1,0 +1,38 @@
+# The Playwright suite (Follow-On Decision, Primary Deals fund return), nightly and on demand —
+# never per merge.
+#
+# Build first, test in batches (26 Sep 2026). The merge gate is `validate.yml` (lint, guards,
+# middleware). This suite runs on main's head once a night and whenever dispatched; on success
+# `promote.yml` fast-forwards the `production` branch to this exact sha, which is what Cloudflare
+# Pages serves at venturedeals.joinwestpeek.com. A red nightly leaves production where it is and is
+# fixed first (bisect between the last green sha and this one). `timeout-minutes` is a fault
+# detector (~4x normal), never a budget.
+#
+# NOT `push`, NOT `pull_request`: scripts/validate_workflows.mjs fails the merge gate if either
+# trigger comes back.
+name: e2e
+on:
+  schedule:
+    - cron: "40 7 * * *" # nightly 07:40 UTC (02:40 CT), main's head
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    # Normal: ~1 min including the Chromium install. 10 is a fault detector, never a budget.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:playwright
+        env:
+          CI: "1"
