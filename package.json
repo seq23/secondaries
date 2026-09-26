@@ -8,7 +8,8 @@
     "test": "npm run lint && npm run test:middleware && npm run test:playwright",
     "test:playwright": "node scripts/playwright_preflight.mjs && playwright test",
     "validate:runbook": "node scripts/validate_runbook.mjs",
-    "test:middleware": "node tests/middleware.check.mjs"
+    "test:middleware": "node tests/middleware.check.mjs",
+    "validate:workflows": "node scripts/validate_workflows.mjs && node scripts/validate_workflows.mjs --self-test"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1"

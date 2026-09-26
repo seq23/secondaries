@@ -1,0 +1,70 @@
+# Promote to production: fast-forward the `production` branch to a sha the browser journey passed.
+#
+# Cloudflare Pages (Git integration) builds the `production` branch to venturedeals.joinwestpeek.com
+# and every other branch as a preview — `main` at https://main.secondaries.pages.dev
+# is the staging copy, rebuilt on every merge. Nothing else writes `production`.
+#
+#   · workflow_run on `e2e` success: the sha that run passed (the nightly path, no person needed).
+#   · workflow_dispatch: a sha (default main's head), REFUSED unless a completed `e2e` run on that
+#     exact sha concluded success. Run the journey first: `gh workflow run e2e.yml --ref main`.
+#
+# A red `e2e` fires this too and is turned away by the `if` below: production stays put.
+name: promote
+
+on:
+  workflow_run:
+    workflows: [e2e]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit to promote (default: main's head). Must have a green e2e run."
+        required: false
+        default: ""
+
+concurrency:
+  group: promote-production
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # pushes the production branch
+      actions: read # reads e2e runs for the dispatch check
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve the sha and require a green e2e run on exactly it
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          INPUT_SHA: ${{ github.event.inputs.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = workflow_run ]; then
+            sha="$RUN_SHA"
+          else
+            sha="$(git rev-parse "${INPUT_SHA:-origin/main}")"
+            green="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/e2e.yml/runs?head_sha=$sha&status=success&per_page=1" --jq '.workflow_runs | length')"
+            if [ "$green" != 1 ]; then
+              echo "::error::REFUSED: no successful e2e run on $sha. Run it first: gh workflow run e2e.yml --ref main"
+              exit 1
+            fi
+          fi
+          git merge-base --is-ancestor "$sha" origin/main || { echo "::error::$sha is not on main"; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Fast-forward production
+        run: |
+          set -euo pipefail
+          sha="${{ steps.pick.outputs.sha }}"
+          if git fetch -q origin production 2>/dev/null && [ "$(git rev-parse FETCH_HEAD)" = "$sha" ]; then
+            echo "production already at $sha"; exit 0
+          fi
+          git push origin "$sha:refs/heads/production"
+          echo "production -> $sha (Cloudflare Pages builds it to venturedeals.joinwestpeek.com)" >> "$GITHUB_STEP_SUMMARY"

@@ -48,10 +48,12 @@ Every file at the root is publicly served, including this one. Never commit anyt
 1. Branch `work/<slug>` off `main`.
 2. Edit the root files (`index.html`, `app.js`, `styles.css`, ...). A formula change needs a
    Playwright assertion in `tests/` that pins the new number.
-3. Validate — the same four steps `.github/workflows/validate.yml` runs on the PR:
+3. Validate — the merge gate `.github/workflows/validate.yml` runs on the PR:
    - `npm run lint` (syntax check of `app.js`)
    - `npm run validate:runbook`
+   - `npm run validate:workflows` (Playwright stays nightly; production moves only by promote)
    - `npm run test:middleware` (internal files 404, every public page and asset passes)
+   And ONLY if your change touches what it covers — in CI it runs nightly, not per merge:
    - `npm run test:playwright` (serves the root on :4173 via `python3 -m http.server`;
      `scripts/playwright_preflight.mjs` first launches the exact Chromium the suite uses and, if it
      will not start, prints the fix: `npx playwright install --force chromium` (`--force` matters:
@@ -63,19 +65,28 @@ Every file at the root is publicly served, including this one. Never commit anyt
 5. Commit, push, open a PR. Cloudflare Pages posts a preview URL
    (`https://<hash>.secondaries.pages.dev`) on the PR — check the change there.
 6. `~/bin/land <pr>` verifies green, squash-merges, watches `main`.
-7. Prove it live: the "Cloudflare Pages" check-run on the merge commit succeeded
+7. Prove it on staging: the "Cloudflare Pages" check-run on the merge commit succeeded
    (`gh api repos/seq23/secondaries/commits/<sha>/check-runs`), then
-   `curl -s https://venturedeals.joinwestpeek.com/ | grep <something you changed>`.
+   `curl -s https://main.secondaries.pages.dev/ | grep <something you changed>`. Production follows
+   after the nightly Playwright run (below).
 
-## How it deploys
-Cloudflare Pages Git integration builds `main` on every push and publishes the repo root to
-venturedeals.joinwestpeek.com — no manual deploy, no `wrangler deploy`. PRs get preview
-deployments only. A red "Cloudflare Pages" check on `main` means production did not update.
+## How it deploys (build first, test in batches — 26 Sep 2026)
+- **Staging = `main`.** Cloudflare Pages Git integration builds every push to `main` as the preview
+  https://main.secondaries.pages.dev (repo root, no build step).
+- **Production = the `production` branch** (venturedeals.joinwestpeek.com). Only `.github/workflows/promote.yml`
+  moves it, and only to a sha the Playwright suite passed: `.github/workflows/e2e.yml` runs nightly
+  (07:40 UTC) and on dispatch; on success promote fast-forwards `production` to that sha.
+- **Promote by hand**: `gh workflow run e2e.yml --ref main` (runs the suite on main's head; green →
+  promote fires), or `gh workflow run promote.yml -f sha=<sha>` for a sha that already has a green run.
+- A red nightly leaves production where it is; fix main first. No manual deploy, no `wrangler deploy`.
 
 ## Guards, and what each pins
 | Guard | Pins |
 |---|---|
-| `.github/workflows/validate.yml` | runs lint, runbook check, middleware test and Playwright on every PR and on `main` |
+| `.github/workflows/validate.yml` | the merge gate: lint, runbook + workflow guards, middleware test on every PR and on `main` (~40 s) |
+| `.github/workflows/e2e.yml` | the Playwright suite, nightly 07:40 UTC + dispatch — gates production, never the merge |
+| `.github/workflows/promote.yml` | fast-forwards `production` to the e2e-green sha (auto on e2e success; by hand with a sha that has one) |
+| `scripts/validate_workflows.mjs` | `validate.yml` never runs Playwright; `e2e.yml` is schedule + dispatch only, with a ceiling; `promote.yml` moves `production` only on e2e success |
 | `npm run lint` | `app.js` parses |
 | `scripts/playwright_preflight.mjs` | Chromium launches before any spec runs; a broken browser install fails once, with the fix command, not as N opaque spec failures |
 | `tests/follow-on-decision.spec.js` | Follow-On Decision: four paths, IC recommendation, constraint disqualification, share-count dilution warnings |
