@@ -135,7 +135,9 @@ async function main() {
   const line = `PRODUCTION GATE: ${d.ok ? 'ok' : 'REFUSED'} — ${sha.slice(0, 7)}: ${d.why}`;
   if (!d.ok) { console.error(`::error::${line}`); process.exit(1); }
   console.log(line);
-  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `note=${d.why.replace(/[\r\n]+/g, ' ')}\n`);
+  // The note becomes a GitHub Deployment description: one line, plain ASCII, no quotes or
+  // backslashes, so a workflow can splice and truncate it without breaking its JSON.
+  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `note=${d.why.replace(/[^\x20-\x7e]+/g, '-').replace(/["\\`]/g, '')}\n`);
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${fs.realpathSync(process.argv[1])}`).href) await main();
