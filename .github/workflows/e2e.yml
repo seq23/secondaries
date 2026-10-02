@@ -5,11 +5,14 @@
 # (`gh workflow run e2e.yml --ref main`), by `land --promote secondaries --run-e2e`, or by `land`
 # after a large change (the `land` PR in seq23/seq-bin defines "large"); the merge gate is
 # `validate.yml` (lint, guards, middleware), and `land <pr>` deploys STAGING (`main`) on every
-# merge. Production deploys only from a commit this workflow has passed on: a successful dispatch
-# on main triggers `promote.yml`, which fast-forwards the `production` branch to this exact sha —
-# what Cloudflare Pages serves at venturedeals.joinwestpeek.com. A red run leaves production where
-# it is and is fixed first (bisect between the last green sha and this one). `timeout-minutes` is
-# a fault detector (~4x normal), never a budget.
+# merge. After a LARGE change production moves only to a commit this workflow has passed on: a
+# successful dispatch on main triggers `promote.yml`, which fast-forwards the `production` branch
+# to this exact sha — what Cloudflare Pages serves at venturedeals.joinwestpeek.com. A SMALL change
+# ships on the fast check without this suite (owner decision 2 Oct 2026; `land <pr>` dispatches
+# `promote.yml` with its verdict, `scripts/production_gate.mjs` checks it). A red run here leaves
+# production where it is, BLOCKS every small change until a green run is newer (known red), and is
+# fixed first (bisect between the last green sha and this one). `timeout-minutes` is a fault
+# detector (~4x normal), never a budget.
 #
 # Owner decision 2 Oct 2026: on demand only; supersedes the 26 Sep nightly cron.
 # NOT `schedule`, NOT `push`, NOT `pull_request`: scripts/validate_workflows.mjs fails the merge

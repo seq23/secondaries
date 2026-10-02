@@ -9,7 +9,8 @@
     "test:playwright": "node scripts/playwright_preflight.mjs && playwright test",
     "validate:runbook": "node scripts/validate_runbook.mjs",
     "test:middleware": "node tests/middleware.check.mjs",
-    "validate:workflows": "node scripts/validate_workflows.mjs && node scripts/validate_workflows.mjs --self-test"
+    "validate:workflows": "node scripts/validate_workflows.mjs && node scripts/validate_workflows.mjs --self-test",
+    "validate:gate": "node scripts/production_gate.mjs --self-test"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1"
