@@ -1,12 +1,13 @@
 # The MERGE GATE for the static deal-math site: lint, runbook + workflow guards, the middleware
 # test — under a minute. It is the run ~/bin/land watches on `main`.
 #
-# Build first, test in batches (26 Sep 2026): the Playwright suite is NOT here. It runs nightly and
-# on dispatch in `e2e.yml`, and gates PRODUCTION, not the merge: Cloudflare Pages builds every push
+# Build first, test in batches (26 Sep 2026): the Playwright suite is NOT here. It runs on demand
+# only (`workflow_dispatch` in `e2e.yml`, no cron — owner decision 2 Oct 2026) and gates
+# PRODUCTION, not the merge: Cloudflare Pages builds every push
 # to `main` as the staging preview (https://main.secondaries.pages.dev) and builds the `production`
 # branch to venturedeals.joinwestpeek.com; `promote.yml` moves that branch only to a sha the suite
-# has passed. `scripts/validate_workflows.mjs` fails this run if the suite ever comes back on push
-# or pull_request.
+# has passed. `scripts/validate_workflows.mjs` fails this run if the suite ever comes back on push,
+# pull_request or a schedule.
 name: validate
 on:
   pull_request:
