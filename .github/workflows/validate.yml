@@ -2,12 +2,16 @@
 # test — under a minute. It is the run ~/bin/land watches on `main`.
 #
 # Build first, test in batches (26 Sep 2026): the Playwright suite is NOT here. It runs on demand
-# only (`workflow_dispatch` in `e2e.yml`, no cron — owner decision 2 Oct 2026) and gates
-# PRODUCTION, not the merge: Cloudflare Pages builds every push
-# to `main` as the staging preview (https://main.secondaries.pages.dev) and builds the `production`
-# branch to venturedeals.joinwestpeek.com; `promote.yml` moves that branch only to a sha the suite
-# has passed. `scripts/validate_workflows.mjs` fails this run if the suite ever comes back on push,
-# pull_request or a schedule.
+# only (`workflow_dispatch` in `e2e.yml`, no cron — owner decision 2 Oct 2026): Cloudflare Pages
+# builds every push to `main` as the staging preview (https://main.secondaries.pages.dev) and
+# builds the `production` branch to venturedeals.joinwestpeek.com; `promote.yml` moves that branch.
+#
+# THIS RUN IS WHAT A SMALL CHANGE SHIPS ON (owner decision 2 Oct 2026): `land <pr>` sends a small
+# change to production once this run is green on the merge commit; the suite gates production
+# only after a large change (land defines "large", in seq23/seq-bin) or when asked. The rule is
+# `scripts/production_gate.mjs`; its self-test runs below. `scripts/validate_workflows.mjs` fails
+# this run if the suite ever comes back on push, pull_request or a schedule, or if promote.yml
+# stops going through the gate.
 name: validate
 on:
   pull_request:
@@ -34,4 +38,6 @@ jobs:
       - run: npm run lint
       - run: npm run validate:runbook
       - run: npm run validate:workflows
+      - name: The production gate decides every case correctly, and five broken gates are caught
+        run: npm run validate:gate
       - run: npm run test:middleware
