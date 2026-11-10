@@ -1,8 +1,7 @@
 # RUNBOOK — secondaries (venture deal math dashboards)
 
 Read this before changing anything. It is the file an AI employee (Porter in West Peek OS,
-Danielle in Boss OS) reads at plan time; `scripts/validate_runbook.mjs` fails the build if the
-paths and scripts named here stop existing.
+Danielle in Boss OS) reads at plan time; keep the paths and scripts named here current.
 
 ## What this repo is
 One static site: the West Peek venture deal math dashboards (Overview, Secondary Deals, Primary
@@ -50,7 +49,6 @@ Every file at the root is publicly served, including this one. Never commit anyt
    Playwright assertion in `tests/` that pins the new number.
 3. Validate — the merge gate `.github/workflows/validate.yml` runs on the PR:
    - `npm run lint` (syntax check of `app.js`)
-   - `npm run validate:runbook`
    - `npm run validate:workflows` (Playwright stays on demand only — `workflow_dispatch`, no cron; production moves only by promote, through the production gate)
    - `npm run validate:gate` (the production gate decides every case correctly)
    - `npm run test:middleware` (internal files 404, every public page and asset passes)
@@ -113,6 +111,5 @@ Every file at the root is publicly served, including this one. Never commit anyt
 | `tests/follow-on-decision.spec.js` | Follow-On Decision: four paths, IC recommendation, constraint disqualification, share-count dilution warnings |
 | `tests/primary-fund-return.spec.js` | Primary Deals fund-return waterfall and every verdict state |
 | `tests/middleware.check.mjs` | repo-internal files answer 404 on both hosts; every page and asset `index.html`/`standards.html` reference still passes; `X-Robots-Tag` only on `*.pages.dev` |
-| `scripts/validate_runbook.mjs` | this file names real paths and scripts |
 
 Prove a new guard negatively before merging: plant the defect, watch it fail, remove it.
