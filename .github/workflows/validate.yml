@@ -36,7 +36,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
-      - run: npm run validate:runbook
       - run: npm run validate:workflows
       - name: The production gate decides every case correctly, and five broken gates are caught
         run: npm run validate:gate

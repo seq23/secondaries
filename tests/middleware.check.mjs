@@ -6,7 +6,7 @@ import fs from "node:fs";
 const PUBLIC = ["/", "/index.html", "/standards", "/standards.html", "/app.js", "/styles.css",
   "/assets/wp-logo.png", "/robots.txt", "/sitemap.xml", "/_headers-not-a-real-page"];
 const INTERNAL = ["/RUNBOOK.md", "/AGENTS.md", "/README.md", "/IMPLEMENTATION_PLAN.md", "/package.json",
-  "/package-lock.json", "/playwright.config.js", "/scripts/validate_runbook.mjs", "/tests/middleware.check.mjs",
+  "/package-lock.json", "/playwright.config.js", "/scripts/production_gate.mjs", "/tests/middleware.check.mjs",
   "/functions/_middleware.js", "/.github/workflows/validate.yml", "/.gitignore", "/follow-on.patch",
   "/runbook.MD", "/%52UNBOOK.md", "/scripts/"];
 
